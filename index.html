@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasapalabra</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .rosco {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 70px auto;
+            border-radius: 50%;
+        }
+
+        header {
+            background-color: #172eb1;
+            color: rgb(255, 255, 255);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .letra {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #87CEFA, #172eb1); /* Degradado azul */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(70, 130, 180, 0.8);
+        }
+        .acertado {
+            background: radial-gradient(circle, #3abe98, #00ab4c) !important; /* Verde */
+        }
+        .fallado {
+            background: radial-gradient(circle, #d80a4a, #f3023e) !important; /* Rojo */
+        }
+        #resultado {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: none; /* Se oculta hasta que sea necesario */
+            text-align: center;
+            width: 150px; /* Ajustar tamaño */
+        }
+        .correcto {
+            background: #00ab4c;
+            box-shadow: 0px 0px 15px rgba(0, 171, 76, 0.8);
+            animation: parpadeo 0.5s infinite alternate;
+        }
+        .incorrecto {
+            background: #d80a4a;
+            box-shadow: 0px 0px 15px rgba(216, 10, 74, 0.8);
+        }
+        @keyframes parpadeo {
+            from { opacity: 1; }
+            to { opacity: 0.6; }
+        }
+        #pregunta {
+            font-size: 20px;
+            font-weight: bold;
+            background: #0056b3;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0px 0px 10px rgba(0, 86, 179, 0.7);
+        }
+    </style>
+</head>
+    <header>
+        <h1>Trabajo de Pasapalabra</h1>
+    </header>
+        <body class="text-center">
+            <div class="container mt-5">
+                <div id="rosco" class="rosco">
+                    <p id="resultado"></p> <!-- Mensaje en el centro -->
+                </div>
+                <p id="pregunta" class="mt-3"></p>
+                <input type="text" id="respuesta" class="form-control w-50 mx-auto" placeholder="Escribe tu respuesta">
+                <button id="btnResponder" class="btn btn-primary mt-3">Responder</button>
+            </div>
+    
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const letras = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+            const rosco = document.getElementById("rosco");
+            const preguntaElemento = document.getElementById("pregunta");
+            const respuestaElemento = document.getElementById("respuesta");
+            const resultadoElemento = document.getElementById("resultado");
+            const btnResponder = document.getElementById("btnResponder");
+            let preguntaActual = "";
+            let respuestaCorrecta = "";
+            let letraSeleccionada = "";
+
+            const preguntas = {
+                A: { definicion: "Actividad realizada por una persona de manera imparcial la cual trata de supervisar que se cumplan las reglas de un deporte.", respuesta: "arbrito" },
+                B: { definicion: "Cinta utilizada por capitanes de equipos de fútbol.", respuesta: "brazalete" },
+                C: { definicion: "Capacidad del corazón, pulmones y vasos sanguíneos para suministrar oxígeno durante el ejercicio.", respuesta: "cardiovascular" },
+                D: { definicion: "Acción realizada entre series o partesde partidos.", respuesta: "descanso" },
+                E: { definicion: "Capacidad de los tejidos y los músculos para estirarse y recuperar su posición original.", respuesta: "elasticidad" },
+                F: { definicion: "Condición física que permite realizar esfuerzos sin fatiga.", respuesta: "fuerza" },
+                G: { definicion: "Deporte que se enfoca en el desarrollo de la fuerza y elasticidad.", respuesta: "gimnasia ritmica" },
+                H: { definicion: "Ejercicio que simula el movimiento de escalar en el mismo lugar.", respuesta: "high knees" },
+                I: { definicion: "Capacidad del músculo para resistir el cansancio en el tiempo.", respuesta: "intensidad" },
+                J: { definicion: "Ejercicio cardiovascular que consiste en moverse elevando las rodillas de manera alterna.", respuesta: "jumping jacks" },
+                K: { definicion: "Arte marcial de origen japonés.", respuesta: "karate" },
+                L: { definicion: "Acción de elevación de peso", respuesta: "levantar" },
+                M: { definicion: "Acción de moverse o cambiar de posición.", respuesta: "movimiento" },
+                N: { definicion: "Deporte que consiste en desplazarse en el agua con técnicas específicas.", respuesta: "natacion" },
+                Ñ: { definicion: "(Contiene la Ñ) Articulación clave en deportes como tenis, gimnasia y levantamiento de pesas.", respuesta: "muñeca" },
+                O: { definicion: "Sustancia que el cuerpo necesita para producir energía en el ejercicio.", respuesta: "oxigeno" },
+                P: { definicion: "Sinónimo de mancuernas", respuesta: "pesas" },
+                Q: { definicion: "Tipo de técnica para activar los músculos antes del ejercicio.", respuesta: "quiromasaje" },
+                R: { definicion: "Actividad física en la que se desplazan los pies de manera alternada a gran velocidad.", respuesta: "running" },
+                S: { definicion: "Sinónimo de brinco", respuesta: "salto" },
+                T: { definicion: "Método utilizado para hacer un ejercicio", respuesta: "tecnica" },
+                U: { definicion: "Ejercicios que trabaja un solo lado del cuerpo.", respuesta: "unilaterales" },
+                V: { definicion: "Deporte donde se trata de que el balón pase por encima de la red al campo contrario.", respuesta: "voleibol" },
+                W: { definicion: "Forma de ejercicio en el agua que fortalece los músculos sin impacto.", respuesta: "waterpolo" },
+                X: { definicion: "(Contiene la X) Fase de sacar el aire durante la respiración", respuesta: "exhalar" },
+                Y: { definicion: "Disciplina física y mental que combina posturas, respiración y meditación.", respuesta: "yoga" },
+                Z: { definicion: "Tipo de baile fitness con música que mejora la condición física.", respuesta: "zumba" },
+            };
+
+            const centerX = 200;
+            const centerY = 200;
+            const radius = 180;
+
+            letras.forEach((letra, index) => {
+                const div = document.createElement("div");
+                div.classList.add("letra");
+                div.textContent = letra;
+                div.setAttribute("data-letra", letra);
+                rosco.appendChild(div);
+                
+                const angle = ((index - 7) / letras.length) * 2 * Math.PI; // Para colocar las letras de manera circular
+                const x = centerX + radius * Math.cos(angle) - 20;
+                const y = centerY + radius * Math.sin(angle) - 20;
+                div.style.transform = `translate(${x}px, ${y}px)`;
+
+                div.addEventListener("click", function() {
+                    letraSeleccionada = letra;
+                    if (preguntas[letra]) {
+                        preguntaActual = preguntas[letra].definicion;
+                        respuestaCorrecta = preguntas[letra].respuesta;
+                        preguntaElemento.textContent = preguntaActual;
+                        respuestaElemento.value = "";
+                        resultadoElemento.textContent = "";
+                        resultadoElemento.style.display = "none"; // Ocultamos el mensaje en el centro
+                    }
+                });
+            });
+
+            btnResponder.addEventListener("click", function() {
+                if (letraSeleccionada && respuestaCorrecta) {
+                    const letraDiv = document.querySelector(`[data-letra="${letraSeleccionada}"]`);
+
+                    if (letraDiv) {
+                        letraDiv.classList.remove("acertado", "fallado");
+
+                        if (respuestaElemento.value.trim().toLowerCase() === respuestaCorrecta.toLowerCase()) {
+                            letraDiv.classList.add("acertado");
+                            resultadoElemento.textContent = "¡Correcto!";
+                            resultadoElemento.className = "correcto";
+                            resultadoElemento.style.display = "block"; // Mostramos el mensaje
+                        } else {
+                            letraDiv.classList.add("fallado");
+                            resultadoElemento.textContent = "Incorrecto";
+                            resultadoElemento.className = "incorrecto";
+                            resultadoElemento.style.display = "block";
+                        }
+                    }
+                } else {
+                    resultadoElemento.textContent = "Selecciona una letra primero.";
+                    resultadoElemento.className = "incorrecto";
+                    resultadoElemento.style.display = "block";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
